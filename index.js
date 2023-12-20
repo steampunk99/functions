@@ -6,9 +6,9 @@ require("cors")({ origin: true });
 admin.initializeApp();
 
 // Twilio credentials
-// const accountSid = 'AC4769704fa53d75b5d54fa0f6f469fbc2';
-// const authToken = '580a30caacac3efaf7c0d01bc1b63fe4';
-// const client = require('twilio')(accountSid, authToken);
+const accountSid = 'AC4769704fa53d75b5d54fa0f6f469fbc2';
+const authToken = '580a30caacac3efaf7c0d01bc1b63fe4';
+const client = require('twilio')(accountSid, authToken);
 
 const transporter = nodemailer.createTransport({
     host: "smtp-mail.outlook.com",
