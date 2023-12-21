@@ -58,3 +58,36 @@ exports.sendUploadEmailNotification = functions.firestore
     return message; 
  
  })
+
+ //document status change
+ exports.DocStatusChangeNotification = functions.firestore
+ .document('uploads/{documentName}')
+ .onUpdate(async (change, context) => {
+
+  const newStatus = change.after.data().status;
+  const previousStatus = change.before.data().status;
+
+  if(newStatus !== previousStatus){
+    
+    const whatsappOptions = {
+      body: `Document status changed from ${previousStatus} to ${newStatus}`,
+      from:'whatsapp:+14155238886',
+      to: 'whatsapp:+256782443845'
+    }
+
+    const mailOptions = {
+      from:"bonnie.lou23@outlook.com",
+      to: "luk23bonnie8@gmail.com",  
+      subject: "Document Status Change",
+      text: `Document status changed from ${previousStatus} to ${newStatus}`,
+    }
+    return transporter.sendMail(mailOptions)
+    .then(() => {
+      return console.log("Email sent successfully");
+    })
+    .catch((error) => {
+      return console.error("Error sending email", error);  
+    
+    })
+ }
+})
