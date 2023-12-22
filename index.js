@@ -5,6 +5,8 @@ require("cors")({ origin: true });
 
 admin.initializeApp();
 
+const db = admin.firestore();
+
 // Twilio credentials
 const accountSid = 'AC4769704fa53d75b5d54fa0f6f469fbc2';
 const authToken = '580a30caacac3efaf7c0d01bc1b63fe4';
@@ -90,4 +92,65 @@ exports.sendUploadEmailNotification = functions.firestore
     
     })
  }
+})
+
+//filtering  uploads
+exports.filterUploads = functions.https.onCall(async (data, context)=>{
+
+  //check auth status
+  if(!context.auth){
+    throw new functions.https.HttpsError('unauthenticated', 'User is not authenticated');
+  }
+
+  try {
+    const uploadsRef = admin.firestore.collection('uploads');
+    let query = uploadsRef;
+
+    if(data.companyName){
+      query = query.where('companyName', '==', data.companyName);
+    } 
+    if (data.department) {
+      query = query.where('department', '==', data.department);
+    }
+    if (data.status) {
+      query = query.where('status', '==', data.status);
+    }
+    if (data.date) {
+      query = query.where('date', '==', data.date);
+    }
+
+    const snapshot = await query.get();
+    const uploads = snapshot.docs.map(doc => doc.data());
+
+    return { uploads };
+  }
+  catch (error) {}
+})
+
+//filter users
+exports.filterUsers = functions.https.onCall(async (data, context)=>{
+    //check auth status
+    if(!context.auth){
+      throw new functions.https.HttpsError('unauthenticated', 'User is not authenticated');
+    }
+
+    try{
+      const usersRef = admin.firestore.collection('users')
+      const query = usersRef;
+
+      
+    if (data.department) {
+      query = query.where('department', '==', data.department);
+    }
+    if (data.companyName) {
+      query = query.where('companyName', '==', data.companyName);
+    }
+    if (data.role) {
+      query = query.where('role', '==', data.role);
+    }
+
+    const snapshot = await query.get();
+    const users = snapshot.docs.map(doc => doc.data());
+    return { users };
+    }catch(error){}
 })
