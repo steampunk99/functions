@@ -94,63 +94,83 @@ exports.sendUploadEmailNotification = functions.firestore
  }
 })
 
-//filtering  uploads
-exports.filterUploads = functions.https.onCall(async (data, context)=>{
-
-  //check auth status
-  if(!context.auth){
-    throw new functions.https.HttpsError('unauthenticated', 'User is not authenticated');
-  }
+// Filter uploads 
+exports.filterUploads = functions.https.onRequest(async (req, res) => {
 
   try {
-    const uploadsRef = admin.firestore.collection('uploads');
+
+    const uploadsRef = admin.firestore().collection('uploads');
+
     let query = uploadsRef;
 
-    if(data.companyName){
-      query = query.where('companyName', '==', data.companyName);
-    } 
-    if (data.department) {
-      query = query.where('department', '==', data.department);
+    if(req.query.companyName){   
+      query = query.where('companyName', '==', req.query.companyName);
+      console.log(req.query.companyName)
     }
-    if (data.status) {
-      query = query.where('status', '==', data.status);
+
+    if (req.query.department) {
+      query = query.where('department', '==', req.query.department);
+      console.log(req.query.department)
     }
-    if (data.date) {
-      query = query.where('date', '==', data.date);
+
+    if (req.query.status) {
+      query = query.where('status', '==', req.query.status);
+      console.log(req.query.status)
+    }
+
+    if (req.query.date) {
+      query = query.where('date', '==', req.query.date);
+      console.log(req.query.date)
     }
 
     const snapshot = await query.get();
+
+    console.log('Number of user uploads found:', snapshot.size);
+
     const uploads = snapshot.docs.map(doc => doc.data());
+    
+    res.json({uploads});
 
-    return { uploads };
+  } catch (error) {
+    res.status(500).send(error); 
   }
-  catch (error) {}
-})
 
-//filter users
-exports.filterUsers = functions.https.onCall(async (data, context)=>{
-    //check auth status
-    if(!context.auth){
-      throw new functions.https.HttpsError('unauthenticated', 'User is not authenticated');
+});
+
+// Filter users
+exports.filterUsers = functions.https.onRequest(async (req, res) => {
+
+  try {
+
+    const usersRef = admin.firestore().collection('users');
+
+    let query = usersRef;
+
+    if (req.query.department) {
+      query = query.where('department', '==', req.query.department);
+      console.log(req.query.department)
     }
 
-    try{
-      const usersRef = admin.firestore.collection('users')
-      const query = usersRef;
+    if (req.query.companyName) {
+      query = query.where('companyName', '==', req.query.companyName);
+      console.log(req.query.companyName)
+    }
 
-      
-    if (data.department) {
-      query = query.where('department', '==', data.department);
-    }
-    if (data.companyName) {
-      query = query.where('companyName', '==', data.companyName);
-    }
-    if (data.role) {
-      query = query.where('role', '==', data.role);
+    if (req.query.role) {
+      query = query.where('role', '==', req.query.role);
+      console.log(req.query.role)  
     }
 
     const snapshot = await query.get();
+
+    console.log('Number of user docs found:', snapshot.size);
+
     const users = snapshot.docs.map(doc => doc.data());
-    return { users };
-    }catch(error){}
-})
+    
+    res.json({users});
+
+  } catch (error) {
+    res.status(500).send(error);
+  }
+
+});
