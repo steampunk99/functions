@@ -13,8 +13,8 @@ const authToken = process.env.authToken
 const client = require('twilio')(accountSid, authToken);
 
 const transporter = nodemailer.createTransport({
-    host: "smtp-mail.outlook.com",
-    port: 587,
+    host:process.env.host ,
+    port: process.env.port,
     secure: false,
     requireTLS: true,
     auth: {
