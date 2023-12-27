@@ -94,6 +94,81 @@ exports.sendUploadEmailNotification = functions.firestore
  }
 })
 
+//handle bounced emails
+exports.handleBouncedEmail = functions.https.onRequest(async (req, res) =>{
+  const bouncedEmail = req.query.email;
+
+  //updating firestore in the users collection
+  const db = admin.firestore();
+  db.collection('users').where('email', '==', bouncedEmail).get()
+  .then(snapshot => {
+    snapshot.forEach(doc => {
+      doc.ref.update({ emailStatus: 'bounced' });
+    })
+    return res.status(200).send('Processed bounced email');
+  })
+  .catch(error => {
+    console.error("Error updating document: ", error);
+    return res.status(500).send('Error processing request');
+
+})
+
+
+
+//handle email sent after document request
+exports.sendEmailAfterDocumentRequest = functions.firestore
+.document('documentRequests/{requestId}')
+.onCreate(async (snap, context) => {
+  const request = snap.data();
+
+  const mailOptions = {
+      from: process.env.username,
+      to: request.clientEmail, // Assuming clientEmail is part of the request data
+      subject: "Documents Requested by Our Staff",
+      text: `Dear ${request.clientName},\n\nOur staff member ${request.staffName} has requested the following documents: ${request.documentsList}. Please provide them at your earliest convenience.\n\nBest regards,\nYour Team`
+  };
+
+  try {
+      await transporter.sendMail(mailOptions);
+      console.log("Document request email sent successfully");
+  } catch (error) {
+      console.error("Error sending document request email", error);
+  }
+
+  //document due date and notifications
+  exports.checkDocumentDueDate = functions.pubsub.schedule('every 24 hours').onRun(async (context) => {
+    const db = admin.firestore();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const querySnapshot = await db.collection('uploads').where('dueDate', '<=', admin.firestore.Timestamp.fromDate(today)).get();
+
+    querySnapshot.forEach(async (doc) => {
+      const documentData = doc.data();
+
+      if(documentData.notified !== true) {
+        if (documentData.notified !== true) {
+          const mailOptions = {
+              from: process.env.username,
+              to: documentData.clientEmail, // Assuming clientEmail is stored in the document
+              subject: "Document Due Date Notification",
+              text: `Dear ${documentData.clientName},\n\nThe due date for the document '${documentData.documentName}' has been reached or passed. Please take the necessary action.\n\nBest regards,\nYour Team`
+          };
+
+          try {
+              await transporter.sendMail(mailOptions);
+              console.log(`Notified client about the due date of document: ${documentData.documentName}`);
+              // Update the document to indicate the client has been notified
+              await db.collection('documents').doc(doc.id).update({ notified: true });
+          } catch (error) {
+              console.error("Error sending due date notification email", error);
+          
+      
+    }}}
+
+
+  })
+
 // Filter uploads 
 exports.filterUploads = functions.https.onRequest(async (req, res) => {
 
