@@ -8,8 +8,8 @@ admin.initializeApp();
 const db = admin.firestore();
 
 // Twilio credentials
-const accountSid = 'AC4769704fa53d75b5d54fa0f6f469fbc2';
-const authToken = '580a30caacac3efaf7c0d01bc1b63fe4';
+const accountSid = process.env.accountSid
+const authToken = process.env.authToken
 const client = require('twilio')(accountSid, authToken);
 
 const transporter = nodemailer.createTransport({
@@ -18,8 +18,8 @@ const transporter = nodemailer.createTransport({
     secure: false,
     requireTLS: true,
     auth: {
-      user: "bonnie.lou23@outlook.com",
-      pass: "Riddickluke987",
+      user:process.env.username ,
+      pass:process.env.password ,
     }
   });
 
@@ -30,7 +30,7 @@ exports.sendUploadEmailNotification = functions.firestore
     const newUpload = snap.data();
 
     const mailOptions = {
-      from:"bonnie.lou23@outlook.com",
+      from:process.env.username,
       to: "luk23bonnie8@gmail.com",  
       subject: "New Document Uploaded",
       text: `A new document has been uploaded: ${newUpload.documentName}`, 
@@ -136,6 +136,7 @@ exports.filterUploads = functions.https.onRequest(async (req, res) => {
   }
 
 });
+
 
 // Filter users
 exports.filterUsers = functions.https.onRequest(async (req, res) => {
