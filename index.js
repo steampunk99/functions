@@ -31,7 +31,7 @@ exports.sendUploadEmailNotification = functions.firestore
 
     const mailOptions = {
       from:process.env.username,
-      to: "luk23bonnie8@gmail.com",  
+      to: "",  
       subject: "New Document Uploaded",
       text: `A new document has been uploaded: ${newUpload.documentName}`, 
     };
@@ -53,8 +53,8 @@ exports.sendUploadEmailNotification = functions.firestore
     const message = `A new document has been uploaded: ${newUpload.documentName}`;
     await client.messages.create({
         body: message,
-        from:'whatsapp:+14155238886',
-        to: 'whatsapp:+256782443845'
+        from:'whatsapp:+,
+        to: 'whatsapp:+
     });
     console.log("Whatsapp notification sent successfully");
     return message; 
